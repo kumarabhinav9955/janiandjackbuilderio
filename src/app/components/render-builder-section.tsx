@@ -1,65 +1,53 @@
-import { builder } from "@builder.io/sdk"; 
+import { builder } from "@builder.io/sdk";
 
-import { RenderBuilderContent } from "./render-builder-content"; 
+import { RenderBuilderContent } from "./render-builder-content";
 
-  
+// Replace with your Public API Key
 
-// Replace with your Public API Key 
+builder.init(process.env.NEXT_PUBLIC_BUILDER_API_KEY!);
 
-builder.init(process.env.NEXT_PUBLIC_BUILDER_API_KEY!); 
+interface RenderBuilderSectionProps {
+  model: string;
 
-  
+  urlPath?: string;
 
-interface RenderBuilderSectionProps { 
+  params: {
+    page?: string[];
+  };
+}
 
-  model: string; 
+export async function RenderBuilderSection({
+  model,
+  urlPath,
+  params,
+}: RenderBuilderSectionProps) {
+  try {
+    const sectionContent = await builder
 
-  urlPath?: string; 
+      // Get the page content from Builder
 
-  params: any; 
+      .get(model, {
+        userAttributes: {
+          // Use the page path specified in the URL to fetch the content
 
-} 
+          urlPath: urlPath || "/" + (params?.page?.join("/") || ""),
+        },
 
-  
+        // Set prerender to false to prevent infinite rendering loops
 
-export async function RenderBuilderSection({ model, urlPath, params }: RenderBuilderSectionProps) { 
+        prerender: false,
+      })
 
-  try { 
+      .toPromise();
 
-    const sectionContent = await builder 
+    return sectionContent ? (
+      <RenderBuilderContent model={model} content={sectionContent} />
+    ) : (
+      <></>
+    );
+  } catch (error) {
+    console.log("error", error);
+  }
 
-      // Get the page content from Builder 
-
-      .get(model, { 
-
-        userAttributes: { 
-
-          // Use the page path specified in the URL to fetch the content 
-
-          urlPath: urlPath || "/" + (params?.page?.join("/") || ""), 
-
-        }, 
-
-        // Set prerender to false to prevent infinite rendering loops 
-
-        prerender: false, 
-
-      }) 
-
-      .toPromise(); 
-
-  
-
-    return sectionContent ? <RenderBuilderContent model={model} content={sectionContent} /> : <></>; 
-
-  } catch (error) { 
-
-    console.log("error", error); 
-
-  } 
-
- 
-
-  return <></>; 
-
-} 
+  return <></>;
+}
